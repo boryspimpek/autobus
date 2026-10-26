@@ -14,10 +14,29 @@ const CONFIG = Object.freeze({
   coneWidth: 58, coneHeight: 66, coneFirstDelay: 2.2,
   coneInterval: 9, coneCarGap: 240,
   shotInterval: 0.46, laneChangeTime: 0.28,
+  // Bazowe rozmiary pojazdów i kolizji. Skalę samych grafik ustaw poniżej.
   busX: 205, busWidth: 176, busHeight: 76,
   carWidth: 118, carHeight: 66, ballRadius: 14,
   hitPadding: 12, spinTime: 0.65, bounceTime: 0.5,
   celebrationTime: 3.2
+});
+
+// Osobna skala grafiki każdego pojazdu (bez zmiany kolizji).
+// 1 = obecny rozmiar, 1.2 = o 20% większy, 0.8 = o 20% mniejszy.
+// Zmieniaj tylko liczby; po zapisaniu pliku odśwież grę.
+const VEHICLE_SCALES = Object.freeze({
+  "01_ciezarowka": 2.0,
+  "02_traktor": 2.0,
+  "03_koparka": 2.0,
+  "04_smieciarka": 2.5,
+  "05_betoniarka": 2.0,
+  "06_straz_pozarna": 2.0,
+  "07_autobus": 1.5,
+  "08_auto_czerwone": 1,
+  "09_auto_niebieskie": 1,
+  "10_auto_zielone": 1,
+  "11_auto_fioletowe": 1,
+  "12_auto_pomaranczowe": 1
 });
 
 const canvas = document.getElementById("game");
@@ -25,6 +44,19 @@ const ctx = canvas.getContext("2d");
 const ui = {};
 ["overlay", "overlay-title", "overlay-description", "play", "play-label", "score", "pause", "sound", "auto", "fullscreen", "celebration", "status", "start-hint", "difficulty"].forEach(id => { ui[id] = document.getElementById(id); });
 const colors = ["#df7d68", "#7c9dd5", "#a58bcc", "#5caa9a", "#ebaf59"];
+// Grafiki patrzą w prawo; kierunek i animacje nadajemy podczas rysowania.
+function loadVehicleImage(filename) {
+  const image = new Image();
+  image.vehicleScale = VEHICLE_SCALES[filename] ?? 1;
+  image.src = "pojazdy_600px/" + filename + ".png";
+  return image;
+}
+const busImage = loadVehicleImage("07_autobus");
+const carImages = [
+  "01_ciezarowka", "02_traktor", "03_koparka", "04_smieciarka",
+  "05_betoniarka", "06_straz_pozarna", "08_auto_czerwone",
+  "09_auto_niebieskie", "10_auto_zielone", "11_auto_fioletowe", "12_auto_pomaranczowe"
+].map(loadVehicleImage);
 const keys = new Set();
 // Każdy palec ma własny wpis: puszczenie strzałki nie przerywa strzelania.
 const pointers = new Map();
@@ -266,7 +298,7 @@ function spawnCar() {
     return !state.cars.some(car => car.mode === "drive" && car.y === CONFIG.lanes[candidate] && Math.abs(x - car.x) < CONFIG.coneCarGap);
   });
   if (lane === undefined) return false;
-  state.cars.push({ x, y: CONFIG.lanes[lane], color: colors[state.carNumber % colors.length], mode: "drive", age: 0 });
+  state.cars.push({ x, y: CONFIG.lanes[lane], color: colors[state.carNumber % colors.length], image: carImages[Math.floor(Math.random() * carImages.length)], mode: "drive", age: 0 });
   state.carNumber++;
   return true;
 }
@@ -421,10 +453,22 @@ function drawScenery() {
   line(0, 177, 1200, 177, "#b3bca8", 2); line(0, 493, 1200, 493, "#b3bca8", 2);
 }
 
-function vehicle(x, y, isBus, color, rotation = 0, scale = 1, alpha = 1) {
+function vehicle(x, y, isBus, color, rotation = 0, scale = 1, alpha = 1, image = isBus ? busImage : null) {
   const w = isBus ? CONFIG.busWidth : CONFIG.carWidth;
   const h = isBus ? CONFIG.busHeight : CONFIG.carHeight;
-  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y); ctx.rotate(rotation); ctx.scale(scale, scale);
+  const visualScale = scale * (image ? image.vehicleScale : 1);
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y); ctx.rotate(rotation);
+  // Lustro w poziomie zmienia kierunek autek, zachowując górę i dół grafiki.
+  ctx.scale(isBus ? visualScale : -visualScale, visualScale);
+  if (image && image.complete && image.naturalWidth > 0) {
+    const fit = Math.min(w / image.naturalWidth, h / image.naturalHeight);
+    const imageWidth = image.naturalWidth * fit;
+    const imageHeight = image.naturalHeight * fit;
+    ctx.drawImage(image, -imageWidth / 2, -imageHeight / 2, imageWidth, imageHeight);
+    ctx.restore();
+    return;
+  }
+  // Podczas ładowania lub przy braku pliku zostaje pojazd rysowany w kodzie.
   rounded(-w/2 + 3, -h/2 + 7, w, h, 19, "#354d4330");
   // Koła wystają po obu stronach karoserii: widok z góry.
   for (const wx of [-w/2 + 28, w/2 - 28]) for (const wy of [-h/2 - 4, h/2 - 5]) {
@@ -482,10 +526,10 @@ function draw() {
   }
   for (const car of state.cars) {
     const t = car.age / CONFIG.spinTime;
-    // Autka jadą w lewo, więc ich przód obracamy o pół obrotu.
+    // Kierunek jazdy nadaje lustro w vehicle(); obrót służy tylko animacjom.
     vehicle(car.x + (car.mode === "bump" ? Math.sin(t * Math.PI) * 44 : 0), car.y, false, car.color,
-      Math.PI + (car.mode === "spin" ? t * Math.PI * 2 : car.mode === "bump" ? Math.sin(t * Math.PI) * 0.4 : 0),
-      car.mode === "spin" ? 1 - t * 0.45 : 1, car.mode === "drive" ? 1 : 1 - t);
+      car.mode === "spin" ? t * Math.PI * 2 : car.mode === "bump" ? Math.sin(t * Math.PI) * 0.4 : 0,
+      car.mode === "spin" ? 1 - t * 0.45 : 1, car.mode === "drive" ? 1 : 1 - t, car.image);
   }
   const bounce = state.bounce > 0 ? Math.sin((1 - state.bounce / CONFIG.bounceTime) * Math.PI) : 0;
   vehicle(CONFIG.busX - bounce * 22, state.busY, true, "#f4c84e", -bounce * 0.06);

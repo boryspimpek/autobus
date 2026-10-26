@@ -4,14 +4,14 @@ Spokojna gra dla małego dziecka. Żółty autobus puszcza kolorowe kulki, autka
 
 ## Uruchomienie
 
-Kliknij dwukrotnie **index.html**, aby otworzyć grę w aktualnej przeglądarce (np. Edge, Chrome lub Firefox). Następnie kliknij **Graj** albo naciśnij **Enter** lub **spację**. Nie potrzeba internetu, serwera, instalacji ani budowania projektu. Wszystkie cztery pliki trzymaj w jednym folderze.
+Kliknij dwukrotnie **index.html**, aby otworzyć grę w aktualnej przeglądarce (np. Edge, Chrome lub Firefox). Następnie kliknij **Graj** albo naciśnij **Enter** lub **spację**. Nie potrzeba internetu, serwera, instalacji ani budowania projektu. Pliki gry oraz folder `pojazdy_600px` trzymaj razem, zachowując nazwy grafik.
 
 ## Sterowanie
 
 - **↑ / ↓** — jeden pas w górę / w dół na jedno naciśnięcie.
 - **Spacja** — kolorowa kulka. Przytrzymaj, aby strzelać regularnie; jednocześnie możesz zmieniać pasy.
 - **P** — pauza / wznowienie. Na ekranie pauzy działają też Enter, spacja i przycisk.
-- **Dźwięk** — włącza / wyłącza ciche efekty, bez muzyki.
+- **Dźwięk** — włącza / wyłącza efekty, bez muzyki w tle.
 - **Auto-strzał** — po włączeniu wystarczą same strzałki; domyślnie wyłączony.
 - **Poziom** — wybór w panelu rodzica, dostępny przed startem, podczas gry i na pauzie.
 - **Pełny ekran** — przełącza widok, jeśli przeglądarka na to pozwala; Esc go opuszcza.
@@ -41,5 +41,12 @@ Na poziomie **Małe wyzwanie** omijaj pomarańczowe pachołki strzałkami. Pacho
 - `index.html` — interfejs i klasyczne dołączenie skryptu.
 - `style.css` — wygląd i skalowanie planszy.
 - `game.js` — rysowanie Canvas 2D, zasady, animacje i Web Audio API.
+- `pojazdy_600px/` — przezroczyste grafiki PNG: autobus gracza i 11 losowanych pojazdów. Wszystkie pliki źródłowe są skierowane w prawo; gra odbija nadjeżdżające pojazdy lustrzanie w poziomie, kierując je w lewo i zachowując górę, dół oraz proporcje obrazów.
 
-Najważniejsze parametry są opisane w obiekcie `CONFIG` na początku `game.js`, w tym trzy zestawy ustawień w `CONFIG.levels` oraz odstępy i rozmiary pachołków. Grafiki powstają w kodzie, a dźwięki są syntezowane dopiero po interakcji użytkownika. Ustawienia i gwiazdki dotyczą bieżącej sesji; odświeżenie strony rozpoczyna nową zabawę i przywraca Spokojną jazdę.
+### Rozmiar poszczególnych pojazdów
+
+Na początku `game.js` znajduje się `VEHICLE_SCALES` z osobnym wpisem dla każdej z 12 grafik. Wartość `1` zachowuje obecny rozmiar, `1.2` powiększa grafikę o 20%, a `0.8` pomniejsza o 20%. Używaj dodatnich liczb z kropką dziesiętną. Na przykład `"01_ciezarowka": 1.3` powiększa tylko ciężarówkę o 30%. Po zapisaniu pliku odśwież grę.
+
+Skala zmienia wyłącznie wygląd, zachowuje proporcje i łączy się z animacją obrotu oraz zmniejszania po trafieniu. Dotyczy także grafiki zastępczej przy braku pliku. Rozmiary kolizji pozostają określone przez `busWidth`, `busHeight`, `carWidth` i `carHeight` w `CONFIG`; duże powiększenie grafiki może więc sprawić, że jej krawędzie znajdą się poza obszarem kolizji.
+
+Najważniejsze parametry są opisane w obiekcie `CONFIG` na początku `game.js`, w tym trzy zestawy ustawień w `CONFIG.levels` oraz odstępy i rozmiary pachołków. Pojazdy korzystają z plików PNG, pozostała grafika powstaje w kodzie, a dźwięki są syntezowane dopiero po interakcji użytkownika. Jeśli grafika pojazdu nie jest jeszcze załadowana lub brakuje pliku, gra rysuje zastępczy pojazd. Ustawienia i gwiazdki dotyczą bieżącej sesji; odświeżenie strony rozpoczyna nową zabawę i przywraca Spokojną jazdę.
