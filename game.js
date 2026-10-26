@@ -235,7 +235,7 @@ document.addEventListener("fullscreenchange", () => {
 
 function shoot() {
   state.balls.push({ x: CONFIG.busX + CONFIG.busWidth / 2 + 8, y: state.busY, color: colors[state.ballNumber++ % colors.length] });
-  tone(510, 0.11, 0.05, 0, "sine", 770);
+  tone(510, 0.11, 0.1, 0, "sine", 770);
 }
 
 function spawnCar() {
