@@ -4,14 +4,14 @@ Spokojna gra dla małego dziecka. Żółty autobus puszcza kolorowe kulki, autka
 
 ## Uruchomienie
 
-Kliknij dwukrotnie **index.html**, aby otworzyć grę w aktualnej przeglądarce (np. Edge, Chrome lub Firefox). Następnie kliknij **Graj** albo naciśnij **Enter** lub **spację**. Nie potrzeba internetu, serwera, instalacji ani budowania projektu. Pliki gry oraz folder `pojazdy_600px` trzymaj razem, zachowując nazwy grafik.
+Kliknij dwukrotnie **index.html**, aby otworzyć grę w aktualnej przeglądarce (np. Edge, Chrome lub Firefox). Następnie kliknij **Graj** albo naciśnij **Enter** lub **spację**. Nie potrzeba internetu, serwera, instalacji ani budowania projektu. Pliki gry oraz foldery `pojazdy_600px` i `music` trzymaj razem, zachowując nazwy grafik i utworów.
 
 ## Sterowanie
 
 - **↑ / ↓** — jeden pas w górę / w dół na jedno naciśnięcie.
 - **Spacja** — kolorowa kulka. Przytrzymaj, aby strzelać regularnie; jednocześnie możesz zmieniać pasy.
 - **P** — pauza / wznowienie. Na ekranie pauzy działają też Enter, spacja i przycisk.
-- **Dźwięk** — włącza / wyłącza efekty, bez muzyki w tle.
+- **Dźwięk** — włącza / wyłącza efekty oraz muzykę w tle.
 - **Auto-strzał** — po włączeniu wystarczą same strzałki; domyślnie wyłączony.
 - **Poziom** — wybór w panelu rodzica, dostępny przed startem, podczas gry i na pauzie.
 - **Pełny ekran** — przełącza widok, jeśli przeglądarka na to pozwala; Esc go opuszcza.
@@ -41,6 +41,7 @@ Na poziomie **Małe wyzwanie** omijaj pomarańczowe pachołki strzałkami. Pacho
 - `index.html` — interfejs i klasyczne dołączenie skryptu.
 - `style.css` — wygląd i skalowanie planszy.
 - `game.js` — rysowanie Canvas 2D, zasady, animacje i Web Audio API.
+- `music/` — podkład MP3: `Curious Bounce.mp3`, następnie `Sunny Journey.mp3`, odtwarzane na zmianę w pętli. Muzyka zaczyna się po rozpoczęciu gry, zatrzymuje na pauzie i po wyłączeniu dźwięku, a po wznowieniu kontynuuje od tego samego miejsca. Głośność podkładu ustawia `CONFIG.musicVolume` (od `0` do `1`), domyślnie `0.35`.
 - `pojazdy_600px/` — przezroczyste grafiki PNG: autobus gracza i 11 losowanych pojazdów. Wszystkie pliki źródłowe są skierowane w prawo; gra odbija nadjeżdżające pojazdy lustrzanie w poziomie, kierując je w lewo i zachowując górę, dół oraz proporcje obrazów.
 
 ### Rozmiar poszczególnych pojazdów

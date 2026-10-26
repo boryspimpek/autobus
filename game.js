@@ -18,7 +18,8 @@ const CONFIG = Object.freeze({
   busX: 205, busWidth: 176, busHeight: 76,
   carWidth: 118, carHeight: 66, ballRadius: 14,
   hitPadding: 12, spinTime: 0.65, bounceTime: 0.5,
-  celebrationTime: 3.2
+  celebrationTime: 3.2,
+  musicVolume: 0.35 // Głośność podkładu: od 0 (cisza) do 1 (maksimum).
 });
 
 // Osobna skala grafiki każdego pojazdu (bez zmiany kolizji).
@@ -73,8 +74,48 @@ let audioContext = null;
 let audioOutput = null;
 let lastFrame = null;
 
+const MUSIC_TRACKS = ["music/Curious Bounce.mp3", "music/Sunny Journey.mp3"];
+let musicTrackIndex = 0;
+const backgroundMusic = new Audio();
+backgroundMusic.preload = "metadata";
+backgroundMusic.volume = CONFIG.musicVolume;
+backgroundMusic.src = MUSIC_TRACKS[musicTrackIndex];
+
+function reportMusicError(error) {
+  if (error && error.name === "AbortError") return; // Pauza podczas ładowania.
+  const message = document.getElementById("music-status");
+  if (error && error.name === "NotAllowedError") {
+    message.textContent = "Przeglądarka zablokowała muzykę. Wyłącz i ponownie włącz przycisk Dźwięk podczas gry.";
+  } else {
+    message.textContent = "Nie można odtworzyć muzyki: " + MUSIC_TRACKS[musicTrackIndex] + ". Sprawdź, czy folder music został skopiowany razem z grą.";
+  }
+  message.hidden = false;
+  console.warn("Nie udało się odtworzyć muzyki", backgroundMusic.currentSrc, error);
+}
+
+function syncMusic() {
+  if (state.mode !== "playing" || !state.sound) {
+    backgroundMusic.pause();
+    return;
+  }
+  if (backgroundMusic.paused) {
+    // Odtwarzanie uruchamia gest gracza; odmowa przeglądarki nie blokuje gry.
+    const playback = backgroundMusic.play();
+    if (playback) playback.catch(reportMusicError);
+  }
+}
+
+backgroundMusic.addEventListener("playing", () => { document.getElementById("music-status").hidden = true; });
+backgroundMusic.addEventListener("error", () => { reportMusicError(backgroundMusic.error); });
+backgroundMusic.addEventListener("ended", () => {
+  musicTrackIndex = (musicTrackIndex + 1) % MUSIC_TRACKS.length;
+  backgroundMusic.src = MUSIC_TRACKS[musicTrackIndex];
+  syncMusic();
+});
+
 function unlockAudio() {
   if (!state.sound) return;
+  syncMusic();
   try {
     const Audio = window.AudioContext || window.webkitAudioContext;
     if (!Audio) return;
@@ -121,6 +162,7 @@ function startOrResume() {
   unlockAudio();
   clearInputs(); lastFrame = null;
   state.mode = "playing";
+  syncMusic();
   syncTouchButtons();
   ui.overlay.hidden = true; ui.pause.disabled = false;
   ui.pause.querySelector("span").textContent = "Pauza";
@@ -131,6 +173,7 @@ function pauseGame() {
   clearInputs(); lastFrame = null;
   if (state.mode !== "playing") return;
   state.mode = "paused";
+  syncMusic();
   syncTouchButtons();
   ui["overlay-title"].textContent = "Mały przystanek";
   ui["overlay-description"].textContent = "Autobus czeka na Ciebie.";
@@ -263,6 +306,7 @@ ui.play.addEventListener("click", startOrResume);
 ui.pause.addEventListener("click", () => { state.mode === "playing" ? pauseGame() : startOrResume(); });
 ui.sound.addEventListener("click", () => {
   state.sound = !state.sound; ui.sound.setAttribute("aria-pressed", String(state.sound));
+  syncMusic();
   unlockAudio(); canvas.focus({ preventScroll: true });
 });
 ui.auto.addEventListener("click", () => {
