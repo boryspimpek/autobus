@@ -81,3 +81,5 @@
   .touch-device .keys{height:24px}
   .touch-device .play-button{padding:5px;font-size:18px}
 }
+.overlay{grid-template-columns:minmax(0,1fr)}
+.welcome-card{min-width:0}
