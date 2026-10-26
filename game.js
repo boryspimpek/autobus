@@ -581,9 +581,6 @@ function draw() {
     ctx.save(); ctx.globalAlpha = 1 - p.age / p.life; ctx.translate(p.x, p.y); ctx.rotate(p.rotation + p.age * 3);
     rounded(-4, -3, 8, 6, 2, p.color); ctx.restore();
   }
-  // Delikatna plakietka kierunku jazdy w prawym dolnym rogu.
-  rounded(1040, 582, 125, 36, 18, "#ecf1d46b");
-  ctx.fillStyle = "#648459"; ctx.font = "bold 12px Trebuchet MS, sans-serif"; ctx.textAlign = "center"; ctx.fillText("W DROGĘ  →", 1102, 605);
 }
 
 function resizeCanvas() {
