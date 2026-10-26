@@ -26,6 +26,10 @@ const ui = {};
 ["overlay", "overlay-title", "overlay-description", "play", "play-label", "score", "pause", "sound", "auto", "fullscreen", "celebration", "status", "start-hint", "difficulty"].forEach(id => { ui[id] = document.getElementById(id); });
 const colors = ["#df7d68", "#7c9dd5", "#a58bcc", "#5caa9a", "#ebaf59"];
 const keys = new Set();
+// Każdy palec ma własny wpis: puszczenie strzałki nie przerywa strzelania.
+const pointers = new Map();
+const touchControls = document.getElementById("touch-controls");
+const touchButtons = ["touch-up", "touch-down", "touch-fire"].map(id => document.getElementById(id));
 const state = {
   mode: "start", sound: true, auto: false, stars: 0, difficulty: "calm",
   time: 0, scroll: 0, spawnTimer: CONFIG.firstCarDelay, shotTimer: 0,
@@ -67,17 +71,19 @@ function tone(frequency, duration, volume, delay = 0, type = "sine", endFrequenc
 function startOrResume() {
   if (state.mode === "playing") return;
   unlockAudio();
-  keys.clear(); lastFrame = null;
+  clearInputs(); lastFrame = null;
   state.mode = "playing";
+  syncTouchButtons();
   ui.overlay.hidden = true; ui.pause.disabled = false;
   ui.pause.querySelector("span").textContent = "Pauza";
   canvas.focus({ preventScroll: true });
 }
 
 function pauseGame() {
-  keys.clear(); lastFrame = null;
+  clearInputs(); lastFrame = null;
   if (state.mode !== "playing") return;
   state.mode = "paused";
+  syncTouchButtons();
   ui["overlay-title"].textContent = "Mały przystanek";
   ui["overlay-description"].textContent = "Autobus czeka na Ciebie.";
   ui["play-label"].textContent = "Jedziemy dalej";
@@ -92,6 +98,75 @@ function changeLane(direction) {
   state.fromY = state.busY; state.lane = lane; state.laneElapsed = 0;
 }
 
+function syncTouchButtons() {
+  ui.pause.setAttribute("aria-label", state.mode === "paused" ? "Wznów grę" : "Pauza");
+  for (const button of touchButtons) {
+    button.disabled = state.mode !== "playing";
+    button.classList.toggle("is-held", [...pointers.values()].includes(button));
+  }
+}
+
+function clearInputs() {
+  keys.clear();
+  const held = [...pointers.entries()];
+  pointers.clear();
+  for (const [pointerId, button] of held) {
+    if (button.hasPointerCapture(pointerId)) button.releasePointerCapture(pointerId);
+  }
+  syncTouchButtons();
+}
+
+function touchAction(button) {
+  if (state.mode !== "playing") return;
+  unlockAudio();
+  if (button.id === "touch-up") changeLane(-1);
+  else if (button.id === "touch-down") changeLane(1);
+  else if (state.shotTimer <= 0) {
+    // Nawet bardzo krótkie dotknięcie pomiędzy klatkami daje strzał.
+    shoot(); state.shotTimer = CONFIG.shotInterval;
+  }
+}
+
+function releasePointer(event) {
+  if (!pointers.has(event.pointerId)) return;
+  const button = pointers.get(event.pointerId);
+  pointers.delete(event.pointerId);
+  if (button.hasPointerCapture(event.pointerId)) button.releasePointerCapture(event.pointerId);
+  syncTouchButtons();
+}
+
+for (const button of touchButtons) {
+  button.addEventListener("pointerdown", event => {
+    if (state.mode !== "playing" || (event.pointerType === "mouse" && event.button !== 0)) return;
+    event.preventDefault();
+    if (pointers.has(event.pointerId)) return;
+    pointers.set(event.pointerId, button);
+    try { button.setPointerCapture(event.pointerId); } catch (_) { /* Syntetyczne zdarzenia mogą nie mieć aktywnego wskaźnika. */ }
+    touchAction(button); syncTouchButtons();
+  });
+  button.addEventListener("lostpointercapture", releasePointer);
+  button.addEventListener("contextmenu", event => event.preventDefault());
+  // Obsługa aktywacji przycisku klawiaturą i narzędziami dostępności.
+  button.addEventListener("click", event => { if (event.detail === 0) touchAction(button); });
+}
+document.addEventListener("pointerup", releasePointer);
+document.addEventListener("pointercancel", releasePointer);
+
+const touchMedia = window.matchMedia("(any-pointer: coarse)");
+function detectTouchControls() {
+  const enabled = touchMedia.matches || navigator.maxTouchPoints > 0;
+  document.documentElement.classList.toggle("touch-device", enabled);
+  touchControls.hidden = !enabled;
+  // W poziomie pasek rodzica może być niżej: pauza zostaje przy liczniku.
+  const pauseContainer = enabled ? document.getElementById("header-actions") : document.querySelector(".view-controls");
+  if (ui.pause.parentElement !== pauseContainer) pauseContainer.appendChild(ui.pause);
+  if (!enabled) clearInputs();
+  syncTouchButtons();
+}
+if (touchMedia.addEventListener) touchMedia.addEventListener("change", detectTouchControls);
+else if (touchMedia.addListener) touchMedia.addListener(detectTouchControls);
+detectTouchControls();
+
 function levelSettings() { return CONFIG.levels[state.difficulty]; }
 
 function setDifficulty(value) {
@@ -103,7 +178,7 @@ function setDifficulty(value) {
   state.cone = null; state.conePlan = null; state.coneNumber = 0;
   state.coneTimer = CONFIG.coneFirstDelay;
   state.spawnTimer = CONFIG.firstCarDelay; state.carNumber = 0;
-  state.bounce = 0; keys.clear();
+  state.bounce = 0; clearInputs();
   ui.difficulty.value = value;
   ui.status.textContent = "Poziom: " + levelSettings().name + ". Gwiazdki zostają z Tobą.";
 }
@@ -134,6 +209,7 @@ document.addEventListener("keydown", event => {
 });
 document.addEventListener("keyup", event => { keys.delete(event.code); });
 window.addEventListener("blur", pauseGame);
+window.addEventListener("orientationchange", pauseGame);
 document.addEventListener("visibilitychange", () => { if (document.hidden) pauseGame(); });
 ui.play.addEventListener("click", startOrResume);
 ui.pause.addEventListener("click", () => { state.mode === "playing" ? pauseGame() : startOrResume(); });
@@ -245,7 +321,7 @@ function update(dt) {
   state.busY = state.fromY + (CONFIG.lanes[state.lane] - state.fromY) * smooth;
   state.bounce = Math.max(0, state.bounce - dt);
   state.shotTimer = Math.max(0, state.shotTimer - dt);
-  if ((keys.has("Space") || state.auto) && state.shotTimer <= 0) {
+  if ((keys.has("Space") || state.auto || [...pointers.values()].includes(touchButtons[2])) && state.shotTimer <= 0) {
     shoot(); state.shotTimer = CONFIG.shotInterval;
   }
   updateCone(dt);

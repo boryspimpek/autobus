@@ -16,7 +16,13 @@ Kliknij dwukrotnie **index.html**, aby otworzyć grę w aktualnej przeglądarce 
 - **Poziom** — wybór w panelu rodzica, dostępny przed startem, podczas gry i na pauzie.
 - **Pełny ekran** — przełącza widok, jeśli przeglądarka na to pozwala; Esc go opuszcza.
 
-Po opuszczeniu okna lub zakładki gra sama przechodzi na pauzę. Wznów ją świadomie, gdy wrócisz. Pominięte autka i zderzenia nie zabierają gwiazdek. Brak obsługi dźwięku lub pełnego ekranu nie blokuje zabawy. Gra jest przeznaczona głównie na komputer z klawiaturą.
+### Telefon i tablet
+
+Na urządzeniach dotykowych pod planszą pojawiają się trzy duże przyciski: **↑**, **↓** i **kolorowa kulka**. Dotknięcie strzałki zmienia pas tylko raz; dotknięcie kulki strzela, a jej przytrzymanie uruchamia regularny ostrzał. Można jednocześnie trzymać kulkę jednym palcem i zmieniać pas drugim. Po włączeniu auto-strzału wystarczą strzałki.
+
+Najwygodniej grać z telefonem w poziomie; układ pionowy również działa. Przyciski nie przewijają ani nie powiększają strony. Puszczenie przycisku, anulowanie dotyku lub opuszczenie okna przerywa dotykowy ostrzał. Obrócenie telefonu włącza pauzę; dotknij „Jedziemy dalej”, aby wznowić. Na komputerze z ekranem dotykowym można korzystać z przycisków i klawiatury równocześnie.
+
+Po opuszczeniu okna lub zakładki gra sama przechodzi na pauzę. Wznów ją świadomie, gdy wrócisz. Pominięte autka i zderzenia nie zabierają gwiazdek. Brak obsługi dźwięku lub pełnego ekranu nie blokuje zabawy.
 
 ## Poziomy trudności
 
