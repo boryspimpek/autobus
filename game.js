@@ -38,6 +38,7 @@ const state = {
   cone: null, conePlan: null, coneTimer: CONFIG.coneFirstDelay, coneNumber: 0
 };
 let audioContext = null;
+let audioOutput = null;
 let lastFrame = null;
 
 function unlockAudio() {
@@ -45,8 +46,21 @@ function unlockAudio() {
   try {
     const Audio = window.AudioContext || window.webkitAudioContext;
     if (!Audio) return;
-    if (!audioContext) audioContext = new Audio();
-    if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
+    if (!audioContext) {
+      audioContext = new Audio();
+      // Wspólne wzmocnienie; kompresor łagodzi nakładające się efekty.
+      audioOutput = audioContext.createGain();
+      audioOutput.gain.value = 1.4;
+      const compressor = audioContext.createDynamicsCompressor();
+      compressor.threshold.value = -8;
+      compressor.knee.value = 12;
+      compressor.ratio.value = 12;
+      compressor.attack.value = 0.003;
+      compressor.release.value = 0.12;
+      audioOutput.connect(compressor);
+      compressor.connect(audioContext.destination);
+    }
+    if (audioContext.state === "suspended" || audioContext.state === "interrupted") audioContext.resume().catch(() => {});
   } catch (_) { /* Dźwięk jest opcjonalny. */ }
 }
 
@@ -61,8 +75,10 @@ function tone(frequency, duration, volume, delay = 0, type = "sine", endFrequenc
     oscillator.frequency.exponentialRampToValueAtTime(endFrequency, now + duration);
     gain.gain.setValueAtTime(0, now);
     gain.gain.linearRampToValueAtTime(volume, now + 0.012);
+    // Dłużej utrzymujemy słyszalny poziom, także na głośnikach tabletu.
+    gain.gain.linearRampToValueAtTime(volume * 0.7, now + duration * 0.55);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-    oscillator.connect(gain); gain.connect(audioContext.destination);
+    oscillator.connect(gain); gain.connect(audioOutput);
     oscillator.start(now); oscillator.stop(now + duration + 0.02);
     oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
   } catch (_) { /* Brak audio nie zatrzymuje gry. */ }
@@ -235,7 +251,7 @@ document.addEventListener("fullscreenchange", () => {
 
 function shoot() {
   state.balls.push({ x: CONFIG.busX + CONFIG.busWidth / 2 + 8, y: state.busY, color: colors[state.ballNumber++ % colors.length] });
-  tone(510, 0.11, 0.5, 0, "sine", 770);
+  tone(510, 0.14, 0.5, 0, "sine", 770);
 }
 
 function spawnCar() {
@@ -257,7 +273,7 @@ function spawnCar() {
 
 function honkAndBounce() {
   state.bounce = CONFIG.bounceTime;
-  tone(230, 0.18, 0.05, 0, "triangle", 285); tone(290, 0.22, 0.05, 0.12, "triangle", 235);
+  tone(230, 0.22, 1.5, 0, "triangle", 285); tone(290, 0.26, 1.5, 0.15, "triangle", 235);
 }
 
 function updateCone(dt) {
@@ -303,11 +319,11 @@ function hitCar(car) {
   confetti(car.x, car.y);
   state.stars++;
   ui.score.textContent = state.stars;
-  tone(660, 0.17, 0.05); tone(880, 0.22, 0.05, 0.08);
+  tone(660, 0.2, 1.5); tone(880, 0.25, 1.5, 0.1);
   if (state.stars % 5 === 0) {
     state.celebration = CONFIG.celebrationTime; ui.celebration.hidden = false;
     ui.status.textContent = "Pięknie! Masz już " + state.stars + " gwiazdek!";
-    [523, 659, 784, 1047].forEach((note, i) => tone(note, 0.3, 0.05, i * 0.14));
+    [523, 659, 784, 1047].forEach((note, i) => tone(note, 0.3, 1.5, i * 0.18));
     confetti(550, 120, 20); confetti(760, 120, 20);
   }
 }
