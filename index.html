@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f5eb">
+  <title>Autobus i kolorowe autka</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="game.js" defer></script>
+</head>
+<body>
+  <main class="game-shell" id="game-shell">
+    <header class="header">
+      <div class="brand"><span class="brand-icon" aria-hidden="true">↗</span><div><p class="eyebrow">MAŁA PODRÓŻ, WIELKA FRAJDA</p><h1>Autobus i kolorowe autka<span>.</span></h1></div></div>
+      <div class="score" aria-label="Liczba zdobytych gwiazdek"><span aria-hidden="true">★</span><strong id="score">0</strong></div>
+    </header>
+    <section class="stage" aria-label="Plansza gry">
+      <canvas id="game" width="1200" height="660" tabindex="0" aria-label="Trzy pasy drogi. Zmieniaj pas strzałkami w górę i w dół, strzelaj spacją.">Twoja przeglądarka nie obsługuje Canvas. Otwórz grę w nowszej przeglądarce.</canvas>
+      <div class="overlay" id="overlay">
+        <div class="welcome-card">
+          <div class="card-badge" aria-hidden="true">★ &nbsp; RUSZAMY PO GWIAZDKI &nbsp; ★</div>
+          <h2 id="overlay-title">Hop, do autobusu!</h2>
+          <p id="overlay-description">Kolorowa przygoda w Twoim tempie.</p>
+          <div class="instructions"><div><span class="keys"><kbd>↑</kbd><kbd>↓</kbd></span><span>Zmieniaj pas</span></div><div><span class="keys"><kbd class="space-key">spacja <b>●</b></kbd></span><span>Puszczaj kulki</span></div></div>
+          <button class="play-button" id="play" type="button"><span aria-hidden="true">▶</span> <span id="play-label">Graj</span></button>
+          <small id="start-hint">Możesz też nacisnąć Enter lub spację</small>
+        </div>
+      </div>
+      <div class="celebration" id="celebration" hidden><span aria-hidden="true">★ ★ ★</span><strong>Pięknie! Jedziemy dalej!</strong></div>
+      <span class="scene-label" aria-hidden="true"><i></i> DOBRA DROGA DO ZABAWY</span>
+    </section>
+    <footer class="toolbar">
+      <div class="parent-controls"><span class="controls-label">DLA RODZICA</span><label class="difficulty-control" for="difficulty"><span>Poziom</span><select id="difficulty"><option value="calm" selected>● Spokojna jazda</option><option value="busy">● Wesoły ruch</option><option value="challenge">● Małe wyzwanie</option></select></label><button id="sound" type="button" aria-pressed="true">Dźwięk <span class="switch" aria-hidden="true"></span></button><button id="auto" type="button" aria-pressed="false">Auto-strzał <span class="switch" aria-hidden="true"></span></button></div>
+      <div class="view-controls"><button id="pause" type="button" disabled>Ⅱ <span>Pauza</span><kbd>P</kbd></button><button id="fullscreen" type="button">⛶ <span>Pełny ekran</span></button></div>
+    </footer>
+    <p class="footnote">Bez pośpiechu. Bez przegranej. Po prostu dobra zabawa.</p>
+    <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+  </main>
+</body>
+</html>
