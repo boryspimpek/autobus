@@ -235,7 +235,7 @@ document.addEventListener("fullscreenchange", () => {
 
 function shoot() {
   state.balls.push({ x: CONFIG.busX + CONFIG.busWidth / 2 + 8, y: state.busY, color: colors[state.ballNumber++ % colors.length] });
-  tone(510, 0.11, 0.025, 0, "sine", 770);
+  tone(510, 0.11, 0.05, 0, "sine", 770);
 }
 
 function spawnCar() {
@@ -257,7 +257,7 @@ function spawnCar() {
 
 function honkAndBounce() {
   state.bounce = CONFIG.bounceTime;
-  tone(230, 0.18, 0.035, 0, "triangle", 285); tone(290, 0.22, 0.025, 0.12, "triangle", 235);
+  tone(230, 0.18, 0.05, 0, "triangle", 285); tone(290, 0.22, 0.05, 0.12, "triangle", 235);
 }
 
 function updateCone(dt) {
@@ -303,11 +303,11 @@ function hitCar(car) {
   confetti(car.x, car.y);
   state.stars++;
   ui.score.textContent = state.stars;
-  tone(660, 0.17, 0.045); tone(880, 0.22, 0.035, 0.08);
+  tone(660, 0.17, 0.05); tone(880, 0.22, 0.05, 0.08);
   if (state.stars % 5 === 0) {
     state.celebration = CONFIG.celebrationTime; ui.celebration.hidden = false;
     ui.status.textContent = "Pięknie! Masz już " + state.stars + " gwiazdek!";
-    [523, 659, 784, 1047].forEach((note, i) => tone(note, 0.3, 0.035, i * 0.14));
+    [523, 659, 784, 1047].forEach((note, i) => tone(note, 0.3, 0.05, i * 0.14));
     confetti(550, 120, 20); confetti(760, 120, 20);
   }
 }
